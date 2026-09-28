@@ -30,7 +30,7 @@ void MapMemoryCore::integrateCostmap(const nav_msgs::msg::OccupancyGrid& costmap
   for (int cy = 0; cy < (int)costmap.info.height; cy++) {
     for (int cx = 0; cx < (int)costmap.info.width; cx++) {
       int8_t cell_val = costmap.data[cy * costmap.info.width + cx];
-      if (cell_val < 0) continue;
+      if (cell_val <= 0) continue;
 
       // costmap is robot-local: origin is (-WIDTH*RES/2, -HEIGHT*RES/2) in robot frame
       double local_x = costmap.info.origin.position.x + cx * costmap.info.resolution;

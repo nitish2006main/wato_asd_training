@@ -1,5 +1,6 @@
 #include "control_core.hpp"
 #include <cmath>
+#include <algorithm>
 
 namespace robot
 {
@@ -19,7 +20,8 @@ std::optional<geometry_msgs::msg::PoseStamped> ControlCore::findLookaheadPoint(
         return path->poses[i];
       }
     }
-    return std::nullopt;
+    if (path->poses.empty()) return std::nullopt;
+    return path->poses.back();
   }
 geometry_msgs::msg::Twist ControlCore::computeVelocity(const geometry_msgs::msg::PoseStamped &target, 
   const double linspeed, const nav_msgs::msg::Odometry::SharedPtr odom, const double distance)
@@ -29,7 +31,8 @@ geometry_msgs::msg::Twist ControlCore::computeVelocity(const geometry_msgs::msg:
       target.pose.position.x - odom->pose.pose.position.x);
     double steering_angle = angle_to_target - yaw;
     double linear_velocity = linspeed;
-    double angular_velocity = 2 * linear_velocity * sin(steering_angle) / distance;
+    double actual_distance = std::max(computeDistance(odom->pose.pose.position, target.pose.position), 1e-3);
+    double angular_velocity = 2 * linear_velocity * sin(steering_angle) / std::min(distance, actual_distance);
     geometry_msgs::msg::Twist cmd_vel;
     cmd_vel.linear.x = linear_velocity;
     cmd_vel.angular.z = angular_velocity;
